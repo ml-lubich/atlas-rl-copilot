@@ -6,10 +6,12 @@ import argparse
 from pathlib import Path
 
 from atlas_rl_copilot.crew_lab import run_lab_crew
+from atlas_rl_copilot.env_loader import load_dotenv_if_present, project_root
 from atlas_rl_copilot.training import run_ppo_training
 
 
 def main() -> None:
+    load_dotenv_if_present(project_root())
     parser = argparse.ArgumentParser(description="Atlas RL Copilot — PPO + spectral metrics + lab notes")
     parser.add_argument("--env", default="CartPole-v1", help="Gymnasium env id")
     parser.add_argument("--timesteps", type=int, default=40_000, help="PPO training steps")

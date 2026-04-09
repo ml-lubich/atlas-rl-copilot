@@ -1,4 +1,4 @@
-"""Optional CrewAI 'lab crew' that comments on training metrics."""
+"""Lab report: MiniMax (preferred), optional CrewAI, or offline stub."""
 
 from __future__ import annotations
 
@@ -6,6 +6,8 @@ import json
 import os
 from pathlib import Path
 from typing import Protocol
+
+from atlas_rl_copilot.env_loader import load_dotenv_if_present, project_root
 
 
 class MetricsPayload(Protocol):
@@ -37,19 +39,28 @@ def run_lab_crew(metrics_path: Path, out_md: Path | None = None) -> str:
     """
     Produce a Markdown report from metrics.json.
 
-    If `crewai` is installed and `OPENAI_API_KEY` is set, uses a tiny CrewAI workflow.
-    Otherwise writes deterministic stub advice (CI-friendly, no network).
+    Resolution order:
+    1. **MiniMax** if `MINIMAX_API_KEY` is set (after loading `.env`).
+    2. Else **CrewAI** if `ATLAS_USE_CREW` is truthy and `OPENAI_API_KEY` is set.
+    3. Else **offline stub** (CI-friendly).
     """
+    load_dotenv_if_present(project_root())
     data = json.loads(metrics_path.read_text(encoding="utf-8"))
     out_md = out_md or metrics_path.with_name("lab_report.md")
 
+    has_minimax = bool(os.environ.get("MINIMAX_API_KEY", "").strip())
     use_crew = os.environ.get("ATLAS_USE_CREW", "").lower() in ("1", "true", "yes")
-    has_key = bool(os.environ.get("OPENAI_API_KEY"))
+    has_openai = bool(os.environ.get("OPENAI_API_KEY"))
 
-    if use_crew and has_key:
+    if has_minimax:
+        try:
+            text = _minimax_report(data)
+        except Exception as exc:  # noqa: BLE001
+            text = _stub_advice(_DictPayload(data)) + f"\n\n_(MiniMax failed: {exc})_"
+    elif use_crew and has_openai:
         try:
             text = _crewai_report(data)
-        except Exception as exc:  # noqa: BLE001 — surface as stub with error note
+        except Exception as exc:  # noqa: BLE001
             text = _stub_advice(_DictPayload(data)) + f"\n\n_(CrewAI failed: {exc})_"
     else:
         text = _stub_advice(_DictPayload(data))
@@ -64,6 +75,20 @@ class _DictPayload:
         self.total_timesteps = int(d["total_timesteps"])
         self.mean_reward_last_n = float(d["mean_reward_last_n"])
         self.instability_index = float(d["instability_index"])
+
+
+def _minimax_report(data: dict) -> str:
+    from atlas_rl_copilot.minimax_client import minimax_chat
+
+    system = (
+        "You are an RL training analyst. Reply in GitHub-flavored Markdown only. "
+        "Be concise: a title, 3-5 bullets, one 'Next experiment' line."
+    )
+    user = (
+        "Summarize this RL run metrics and comment on stability using instability_index.\n\n"
+        f"```json\n{json.dumps(data, indent=2)}\n```"
+    )
+    return minimax_chat(system_text=system, user_text=user)
 
 
 def _crewai_report(data: dict) -> str:
