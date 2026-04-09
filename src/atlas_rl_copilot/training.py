@@ -10,6 +10,7 @@ import gymnasium as gym
 import numpy as np
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import BaseCallback
+from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv
 
 
@@ -49,6 +50,8 @@ class EpisodeReturnCollector(BaseCallback):
 def _make_env(env_id: str, seed: int):
     def _thunk():
         env = gym.make(env_id)
+        # Required for `info["episode"]` episode return stats in callbacks.
+        env = Monitor(env)
         env.reset(seed=seed)
         return env
 
