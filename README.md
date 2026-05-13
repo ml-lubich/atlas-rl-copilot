@@ -4,6 +4,40 @@
 
 This is a small Python project you can extend (harder envs, sweeps, W&B, etc.), not an empty boilerplate.
 
+```mermaid
+flowchart LR
+    CLI{{"💻 atlas-train CLI"}}
+    ENV["🌍 env_loader.py<br/>Gymnasium env"]
+    PPO["🎯 PPO trainer<br/>Stable-Baselines3"]
+    SPEC["📈 spectral.py<br/>FFT instability score"]
+    LAB["🧪 crew_lab.py<br/>+ minimax_client.py"]
+    OUT[/"📂 runs/&lt;name&gt;/<br/>metrics.json · policy.zip · lab_report.md"/]
+    LLM(("🤖 MiniMax / OpenAI"))
+
+    CLI --> ENV --> PPO --> OUT
+    PPO --> SPEC --> OUT
+    OUT --> LAB --> LLM
+    LAB --> OUT
+
+    classDef io fill:#0e1116,stroke:#2f81f7,stroke-width:1.5px,color:#e6edf3;
+    classDef brain fill:#161b22,stroke:#d29922,stroke-width:1.5px,color:#e6edf3;
+    classDef tool fill:#161b22,stroke:#3fb950,stroke-width:1.5px,color:#e6edf3;
+    classDef out fill:#0e1116,stroke:#a371f7,stroke-width:1.5px,color:#e6edf3;
+    class CLI brain;
+    class LLM io;
+    class ENV,PPO,SPEC,LAB tool;
+    class OUT out;
+```
+
+## Table of contents
+
+- [Quickstart](#quickstart)
+- [MiniMax lab report](#minimax-lab-report-recommended)
+- [Optional CrewAI](#optional-crewai-openai-api)
+- [What the instability index is](#what-the-instability-index-is)
+- [Project layout](#project-layout)
+- [License](#license)
+
 ## Quickstart
 
 ```bash
@@ -45,6 +79,19 @@ Without any LLM key, `--lab` still writes a deterministic offline report so CI s
 ## What the instability index is
 
 A high-frequency energy ratio on the centered FFT of the episode-return sequence (see `spectral.py`). Large values often line up with choppy improvement; use it as a **cheap health signal**, not a theorem.
+
+## Project layout
+
+```
+src/atlas_rl_copilot/
+  cli.py             # atlas-train entrypoint
+  env_loader.py      # Gymnasium env construction
+  spectral.py        # FFT-based instability index
+  crew_lab.py        # optional CrewAI advisor
+  minimax_client.py  # MiniMax (OpenAI-compatible) client
+tests/               # pytest suite (training smoke + unit)
+pyproject.toml       # hatchling build, optional [crew] extra
+```
 
 ## License
 
