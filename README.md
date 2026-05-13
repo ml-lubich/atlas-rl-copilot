@@ -39,6 +39,7 @@ flowchart LR
 - [What the instability index is](#what-the-instability-index-is)
 - [Project layout](#project-layout)
 - [License](#license)
+- [🗺️ Repository map](#️-repository-map)
 
 ## Training loop (algorithm)
 
@@ -144,3 +145,24 @@ pyproject.toml       # hatchling build, optional [crew] extra
 ## License
 
 MIT
+
+
+## 🗺️ Repository map
+
+Top-level layout of `atlas-rl-copilot` rendered as a Mermaid mindmap (auto-generated from the on-disk tree).
+
+```mermaid
+mindmap
+  root((atlas-rl-copilot))
+    src/
+      atlas_rl_copilot
+    tests/
+      test_crew_stub.py
+      test_minimax_client.py
+      test_spectral.py
+      test_training_smoke.py
+    files
+      LICENSE
+      README.md
+      pyproject.toml
+```
