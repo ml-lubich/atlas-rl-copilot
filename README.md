@@ -40,6 +40,7 @@ flowchart LR
 - [Project layout](#project-layout)
 - [License](#license)
 - [🗺️ Repository map](#️-repository-map)
+- [📊 Code composition](#-code-composition)
 
 ## Training loop (algorithm)
 
@@ -165,4 +166,17 @@ mindmap
       LICENSE
       README.md
       pyproject.toml
+```
+
+
+## 📊 Code composition
+
+File-type breakdown of source under this repo (skips `.git`, `node_modules`, build caches, lockfiles).
+
+```mermaid
+pie showData title File-type composition of atlas-rl-copilot (14 files)
+    "Python" : 11
+    "Other" : 1
+    "TOML" : 1
+    "Markdown" : 1
 ```
