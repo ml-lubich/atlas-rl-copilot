@@ -32,11 +32,59 @@ flowchart LR
 ## Table of contents
 
 - [Quickstart](#quickstart)
+- [Training loop (algorithm)](#training-loop-algorithm)
+- [Lab report sequence](#lab-report-sequence)
 - [MiniMax lab report](#minimax-lab-report-recommended)
 - [Optional CrewAI](#optional-crewai-openai-api)
 - [What the instability index is](#what-the-instability-index-is)
 - [Project layout](#project-layout)
 - [License](#license)
+
+## Training loop (algorithm)
+
+```mermaid
+flowchart LR
+    A([start])
+    B["env_loader<br/>build Gymnasium env"]
+    C["PPO.learn(timesteps)"]
+    D["collect rollouts<br/>per episode"]
+    E["log episode return"]
+    F{"timesteps<br/>reached?"}
+    G["spectral.py<br/>FFT instability index"]
+    H["save policy.zip<br/>+ metrics.json"]
+    Z([done])
+    A --> B --> C --> D --> E --> F
+    F -- "no" --> D
+    F -- "yes" --> G --> H --> Z
+```
+
+## Lab report sequence
+
+```mermaid
+sequenceDiagram
+    participant U as user
+    participant CLI as atlas-train
+    participant T as PPO trainer
+    participant S as spectral.py
+    participant L as crew_lab.py
+    participant LLM as MiniMax / OpenAI
+
+    U->>CLI: --timesteps 12000 --lab
+    CLI->>T: learn(env, timesteps)
+    T-->>CLI: returns + checkpoints
+    CLI->>S: instability(returns)
+    S-->>CLI: index
+    CLI->>L: write_report(metrics)
+    alt MINIMAX_API_KEY set
+        L->>LLM: chat(metrics)
+        LLM-->>L: advice md
+    else no key, ATLAS_USE_CREW=1
+        L->>LLM: openai chat
+    else offline
+        L->>L: deterministic stub
+    end
+    L-->>U: lab_report.md
+```
 
 ## Quickstart
 
